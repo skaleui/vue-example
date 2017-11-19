@@ -3,7 +3,33 @@
 // we are also using it with karma-webpack
 //   https://github.com/webpack/karma-webpack
 
-var webpackConfig = require('../../build/webpack.test.conf')
+var path = require('path')
+var merge = require('webpack-merge')
+var baseConfig = require('../../build/webpack.base.conf')
+var utils = require('../../build/utils')
+var webpack = require('webpack')
+var projectRoot = path.resolve(__dirname, '../../')
+
+var webpackConfig = merge(baseConfig, {
+  module: {
+    loaders: utils.styleLoaders()
+  },
+  devtool: '#inline-source-map',
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': require('../../config/test.env')
+    })
+  ]
+})
+
+delete webpackConfig.entry  // no need for app entry during tests
+
+webpackConfig.module.loaders.some(function (loader, i){
+  if(loader.loader === 'babel') {
+    loader.include = path.resolve(projectRoot, 'test/unit')
+    return true
+  }
+})
 
 module.exports = function (config) {
   config.set({
